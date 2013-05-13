@@ -7,6 +7,8 @@ endif
 let s:scriptfolder = expand('<sfile>:p:h').'/md_instant'
 
 function! OpenMarkdown()
+    au CursorMoved,CursorMovedI,CursorHold,CursorHoldI <buffer> silent call UpdateMarkdown()
+    au BufWinLeave <buffer> silent call CloseMarkdown()
     let b:md_tick = ""
 python << EOF
 import sys, os, vim, time
@@ -25,6 +27,7 @@ import md_instant
 md_instant.main(vim.current.buffer)
 md_instant.startbrowser()
 EOF
+    redraw!
 endfunction
 
 function! UpdateMarkdown()
@@ -41,9 +44,4 @@ md_instant.stopserver()
 EOF
 endfunction
 
-" Only README.md is recognized by vim as type markdown. Do this to make ALL .md files markdown
-autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent setf markdown
-
-autocmd CursorMoved,CursorMovedI,CursorHold,CursorHoldI *.{md,mkd,mkdn,mdown,mark*} silent call UpdateMarkdown()
-autocmd BufWinEnter *.{md,mkd,mkdn,mdown,mark*} silent call OpenMarkdown()
-autocmd BufWinLeave *.{md,mkd,mkdn,mdown,mark*} silent call CloseMarkdown()
+au FileType markdown command! -nargs=0 Preview call OpenMarkdown()
