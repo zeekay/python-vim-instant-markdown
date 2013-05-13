@@ -6,11 +6,14 @@ import hashlib
 import struct
 from select import select
 
+from markdown import markdown
+import json
+
 class WebSocket():
 
     @staticmethod
     def handshake(conn):
-        key = None 
+        key = None
         data = conn.recv(8192)
         if not len(data):
             return False
@@ -47,7 +50,7 @@ class WebSocket():
         for cnt, d in enumerate(raw):
             ret += chr(ord(d) ^ ord(mask[cnt%4]))
         return ret
-                      
+
     @staticmethod
     def send(conn, data):
         head = '\x81'
@@ -67,12 +70,21 @@ def sendall(data):
         if sock != server:
             WebSocket.send(sock, data)
 
-def process(conn, data): #you should change this method
-    WebSocket.send(conn, data)
+def main(content=''):
+    def process(conn, data):
+        # WebSocket.send(conn, json.dumps({'type': 'processing'}))
+        try:
+            message = json.loads(data)
+            if message['type'] == 'ready':
+                WebSocket.send(conn, json.dumps({'type': 'html', 'html': content}))
+            else:
+                WebSocket.send(conn, json.dumps({'type': 'unknown_message'}))
+        except:
+            WebSocket.send(conn, json.dumps({'type': 'error'}))
 
-def main(handle=process):
     port = 7001
     try:
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         server.bind(('', port))
         server.listen(100)
     except Exception, e:
@@ -92,7 +104,7 @@ def main(handle=process):
                 if not data:
                     socket_list.remove(sock)
                 else:
-                    handle(sock, data)
+                    process(sock, data)
 
 if __name__ == '__main__':
     main()

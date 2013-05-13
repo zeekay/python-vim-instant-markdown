@@ -10,14 +10,20 @@ function! OpenMarkdown()
     let b:md_tick = ""
 python << EOF
 import sys, os, vim, time
+
+for lib in ['pygments', 'markdown']:
+    try:
+        __import__(lib)
+    except:
+        vim.command('!pip install ' + lib)
+        vim.command('redraw!')
+
 sys.path.append(vim.eval('s:scriptfolder'))
 sys.stdout = open(os.path.devnull, 'w')
 sys.stderr = open(os.path.devnull, 'w')
 import md_instant
-md_instant.main()
+md_instant.main(vim.current.buffer)
 md_instant.startbrowser()
-time.sleep(3)
-md_instant.sendall(vim.current.buffer)
 EOF
 endfunction
 
