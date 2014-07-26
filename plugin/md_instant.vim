@@ -43,4 +43,4 @@ md_instant.stopserver()
 EOF
 endfunction
 
-au FileType markdown command! -nargs=0 Preview call OpenMarkdown()
+au FileType markdown command! -buffer -nargs=0 Preview call OpenMarkdown()
